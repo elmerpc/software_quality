@@ -1,0 +1,14 @@
+{
+    "python.analysis.extraPaths": [
+        "./A01014943_Actividad6.2"
+    ],
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./A01014943_Actividad6.2",
+        "-p",
+        "test_*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true
+}
