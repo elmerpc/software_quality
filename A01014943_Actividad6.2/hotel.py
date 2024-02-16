@@ -1,6 +1,6 @@
 """ Module to represent a hotel with its name, address, and available rooms. """
 import json
-from reservation import create_reservation, delete_reservation
+from reservation import create_reservation
 
 
 class Hotel:
@@ -27,39 +27,23 @@ class Hotel:
         self.address = address
         self.rooms = list(range(101, 111)) if rooms is None else rooms
         self.reservations = []
+        self.filename = f'hotel_{self.name}_data.json'
 
 
-    def load_data(self, filename=None):
+    def load_data(self):
         """
         Loads hotel data from a JSON file.
         """
-        filename = filename if filename else f'hotel_{self.name}_data.json'
-
         try:
-            with open(filename, 'r', encoding='utf-8') as file:
+            with open(self.filename, 'r', encoding='utf-8') as file:
                 data = json.load(file)
                 self.name = data.get('name', self.name)
                 self.address = data.get('address', self.address)
                 self.rooms = data.get('rooms', self.rooms)
-                reservations = self.load_reservations()
-                self.reservations = reservations if reservations else []
+                self.reservations = data.get('reservations', [])
                 return self
         except FileNotFoundError:
             print("No existing data found. Starting with default values.")
-
-    def load_reservations(self):
-        """
-        Loads reservations from a JSON file.
-        """
-        try:
-            with open('reservations.json', 'r', encoding='utf-8') as file:
-                reservations = json.load(file)
-                for reservation in reservations:
-                    if reservation['hotel'] == self.name:
-                        self.reservations.append((reservation['room_number'], reservation['customer']))
-                return reservations
-        except FileNotFoundError:
-            print("No existing reservations found.")
 
     def save_data(self):
         """
@@ -116,8 +100,8 @@ class Hotel:
             None
         """
         if room_number in self.rooms and self.verify_room_availability(room_number, start_date, end_date):
-            create_reservation(guest_name, self.name, room_number, start_date, end_date)
-            self.reservations.append((room_number, guest_name))
+            reservation = create_reservation(guest_name, self.name, room_number, start_date, end_date)
+            self.reservations.append(reservation.to_dict())
             self.rooms.remove(room_number)
             print(f"Room {room_number} reserved for {guest_name}.")
             self.save_data()
@@ -138,9 +122,9 @@ class Hotel:
         """
         availability = True
         try:
-            with open('reservations.json', 'r', encoding='utf-8') as file:
-                reservations = json.load(file)
-            for reservation in reservations:
+            with open(self.filename, 'r', encoding='utf-8') as file:
+                hotel_data = json.load(file)
+            for reservation in hotel_data['reservations']:
                 if reservation['room_number'] == room_number and reservation['hotel'] == self.name and reservation['start_date'] < end_date and reservation['end_date'] > start_date:
                     availability = False
         except FileNotFoundError:
@@ -158,13 +142,11 @@ class Hotel:
             None
         """
         for reservation in self.reservations:
-            print(reservation)
             if reservation['id'] == reservation_id:
                 self.reservations.remove(reservation)
                 self.rooms.append(reservation['room_number'])
                 print(f"Reservation {reservation_id} for {reservation['customer']} cancelled.")
                 self.save_data()
-                delete_reservation(reservation_id)
                 return
         print(f"No reservation found for ID {reservation_id}.")
 

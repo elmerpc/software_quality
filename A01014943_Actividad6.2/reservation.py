@@ -15,80 +15,61 @@ class Reservation:
     """
 
     def __init__(self, customer, hotel, room_number, start_date, end_date):
+        self.hotel = hotel
         self.id = self.get_next_id()
         self.customer = customer
-        self.hotel = hotel
         self.room_number = room_number
         self.start_date = start_date
         self.end_date = end_date
 
-    def get_next_id(self):
+    def to_dict(self):
+        """ Returns a dictionary representation of the reservation. """
+        return {
+            'id': self.id,
+            'customer': self.customer,
+            'hotel': self.hotel,
+            'room_number': self.room_number,
+            'start_date': self.start_date,
+            'end_date': self.end_date
+        }
+
+    def get_next_id(self, filename=None):
         """
         Gets the next available ID for a reservation.
 
         Returns:
             int: The next available ID for a reservation.
         """
+        filename = filename if filename else f'hotel_{self.hotel}_data.json'
+
         try:
-            with open('reservations.json', 'r', encoding='utf-8') as file:
-                reservations = json.load(file)
+            with open(filename, 'r', encoding='utf-8') as file:
+                hotel_data = json.load(file)
+                reservations = hotel_data.get('reservations', [])
                 if reservations:
-                    last_reservation = reservations[-1]
-                    return last_reservation['id'] + 1
-                return 1
+                    return reservations[-1]['id'] + 1
+                else:
+                    return 1
         except FileNotFoundError:
             return 1
 
     def print_reservation_details(self):
         """
-        Prints the details of the reservation.
-        """
-        print("Reservation Details:")
-        print(f"ID: {self.id}")
-        print(f"Customer: {self.customer}")
-        print(f"Hotel: {self.hotel}")
-        print(f"Room Number: {self.room_number}")
-        print(f"Start Date: {self.start_date}")
-        print(f"End Date: {self.end_date}")
+        Returns a string with the details of the reservation.
 
-    def save_reservation_json(self):
+        Returns:
+            str: A string with the details of the reservation.
         """
-        Saves the reservation details in a JSON file.
-        """
-        reservation_data = {
-            "id": self.id,
-            "customer": self.customer,
-            "hotel": self.hotel,
-            "room_number": self.room_number,
-            "start_date": self.start_date,
-            "end_date": self.end_date
-        }
-        try:
-            with open("reservations.json", "r", encoding='utf-8') as file:
-                reservations = json.load(file)
-        except FileNotFoundError:
-            reservations = []
-
-        reservations.append(reservation_data)
-
-        with open("reservations.json", "w", encoding='utf-8') as file:
-            json.dump(reservations, file, indent=4)
+        details = f"Reservation ID: {self.id}\n"
+        details += f"Customer: {self.customer}\n"
+        details += f"Hotel: {self.hotel}\n"
+        details += f"Room Number: {self.room_number}\n"
+        details += f"Start Date: {self.start_date}\n"
+        details += f"End Date: {self.end_date}\n"
+        return details
 
 def create_reservation(customer, hotel, room_number, start_date, end_date):
     """ Creates a reservation and saves it to the JSON file."""
     r = Reservation(customer, hotel, room_number, start_date, end_date)
-    r.save_reservation_json()
+    #r.save_reservation_json()
     return r
-
-def delete_reservation(reservation_id):
-    """
-    Cancels the reservation by deleting it from the JSON file.
-    """
-    with open("reservations.json", "r", encoding='utf-8') as file:
-        reservations = json.load(file)
-
-    updated_reservations = [reservation for reservation in reservations if reservation['id'] != reservation_id]
-
-    with open("reservations.json", "w", encoding='utf-8') as file:
-        print("Reservation deleted successfully.")
-        json.dump(updated_reservations, file, indent=4)

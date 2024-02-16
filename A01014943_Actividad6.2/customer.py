@@ -14,7 +14,6 @@ class Customer:
         """
         self.name = name
         self.address = address
-        self.load_information()
 
     def load_information(self):
         """
@@ -43,8 +42,9 @@ class Customer:
         """
         Displays the information of the customer.
         """
-        print(f"Customer Name: {self.name}")
-        print(f"Address: {self.address}")
+        information = f"Customer Name: {self.name}\n"
+        information += f"Address: {self.address}\n"
+        return information
 
     def modify_information(self, name=None, address=None):
         """
